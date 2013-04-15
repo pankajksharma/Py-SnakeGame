@@ -16,16 +16,6 @@ class MultiPlayerServer(SnakeGame):
 		self.server = server
 		self.client_snake = {}
 
-	def draw_snakes(self):
-		"""Draws snakes present on board."""
-		for snake in self.board.get_snakes():
-			snake_body_points = snake.get_body_points()
-			color = snake.get_color()
-			for point in snake_body_points[:-1]:
-				self.surface.blit(self.snake_body_icon[color], (point.get_x()*self.scale, point.get_y()*self.scale))
-			snake_mouth = snake_body_points[-1]
-			self.surface.blit(self.snake_mouth_icon[color][snake.get_direction()], (snake_mouth.get_x()*self.scale, snake_mouth.get_y()*self.scale))
-
 	def send_coordinates(self):
 		"""Send snakes' coordinates to Clients."""
 		data_sending_thread = DataSendThread(self.server, self.client_snake, self.food)

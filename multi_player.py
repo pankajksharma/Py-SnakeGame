@@ -15,17 +15,6 @@ class MultiPlayerGame(SnakeGame):
 		self.scale = scale
 		self.client = client
 
-	def draw_snakes(self):
-		"""Draws snakes present on board."""
-		for snake in self.board.get_snakes():
-			snake_body_points = snake.get_body_points()
-			#print snake_body_points
-			color = snake.get_color()
-			for point in snake_body_points[:-1]:
-				self.surface.blit(self.snake_body_icon[color], (point.get_x()*self.scale, point.get_y()*self.scale))
-			snake_mouth = snake_body_points[-1]
-			self.surface.blit(self.snake_mouth_icon[color][snake.get_direction()], (snake_mouth.get_x()*self.scale, snake_mouth.get_y()*self.scale))
-
 	def listen_for_snakes_and_food(self):
 		"""Listens for snake data over network."""
 		listening_thread = ClientThread(self.client, self.board, self.food)

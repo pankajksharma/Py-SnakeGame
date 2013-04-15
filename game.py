@@ -92,6 +92,16 @@ class SnakeGame(Game):
 		"""Draws snake food."""
 		self.surface.blit(self.frog_icon, (self.food.get_x()*self.scale, self.food.get_y()*self.scale))
 
+	def draw_snakes(self):
+		"""Draws snakes present on board."""
+		for snake in self.board.get_snakes():
+			snake_body_points = snake.get_body_points()
+			#print snake_body_points
+			color = snake.get_color()
+			for point in snake_body_points[:-1]:
+				self.surface.blit(self.snake_body_icon[color], (point.get_x()*self.scale, point.get_y()*self.scale))
+			snake_mouth = snake_body_points[-1]
+			self.surface.blit(self.snake_mouth_icon[color][snake.get_direction()], (snake_mouth.get_x()*self.scale, snake_mouth.get_y()*self.scale))
 
 class StartGameScreen(Game):
 	"""Start Screen for Game."""
@@ -102,13 +112,17 @@ class StartGameScreen(Game):
 
 	def get_game_mode(self, options):
 		"""Returns game Mode."""
-		game_mode_pos = self.draw_start_screen(options)[1]
-		if game_mode_pos < 130:
-			return Mode.SINGLEPLAYER
-		elif game_mode_pos > 200:
-			return Mode.MULTIPLAYER_SERVER
-		else:
-			return Mode.MULTIPLAYER_CLIENT
+		while True:
+			game_mode_pos = self.draw_start_screen(options)[1]
+			#print game_mode_pos
+			if game_mode_pos in range(90, 120):
+				return Mode.SINGLEPLAYER
+			elif game_mode_pos in range(140, 170):
+				return Mode.SINGLEPLAYERWITHCOMP
+			elif game_mode_pos in range(190, 220):
+				return Mode.MULTIPLAYER_SERVER
+			elif game_mode_pos in range(240, 270):
+				return Mode.MULTIPLAYER_CLIENT
 
 	def draw_start_screen(self, options):
 		"""Draws Start Screen."""
@@ -141,6 +155,6 @@ class StartGameScreen(Game):
 						cur_option += 1
 					elif event.key == K_RETURN:
 						return (100, 105+50*cur_option)
-			cur_option %= 3
+			cur_option %= len(start_options)
 
 			pygame.display.update()	

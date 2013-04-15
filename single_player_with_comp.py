@@ -1,41 +1,31 @@
 import pygame, sys, random
 from pygame.locals import *
 
-from basics import board, point, food
+from basics import board, point, food, automated_snake
 
 from basics.mode import Mode
 from basics.colors import Colors as color
 from basics.direction import Direction
-from game import SnakeGame
+from single_player import SinglePlayerGame
 
-class SinglePlayerGame(SnakeGame):
+class SinglePlayerGameWithComp(SinglePlayerGame):
 	"""Single Player Mode."""
 	def __init__(self, name, snake, FPS=5, scale=20, LIVES=3):
-		SnakeGame.__init__(self, name)
-		self.snake = snake
-		self.FPS = FPS
-		self.scale = scale
-		self.lives_remaining = LIVES
-		self.score = 0
-
-	def draw_lives_and_score(self):
-		"""Draws Lives remaining and Score."""
-		score = self.font2.render("Score: "+ str(self.score), 1, color.BLACK)
-		lives_remaining = self.font2.render(' x '+str(self.lives_remaining), 1, color.BLACK)
-		self.surface.blit(score, (20,20))
-		self.surface.blit(self.lives_icon, (20,40))
-		self.surface.blit(lives_remaining, (40,40))
+		SinglePlayerGame.__init__(self, name, snake, FPS, scale, LIVES)
 
 	def is_new_high_score(self):
 		"""Returns True if a new high score is created."""
-		high_score = int(open('data/high_score.txt', 'r').read())
+		high_score = int(open('data/hs_vs_comp.txt', 'r').read())
 		if self.score > high_score:
-			open('data/high_score.txt', 'w').write(str(self.score))
+			open('data/hs_vs_comp.txt', 'w').write(str(self.score))
 			return True
 		return False
-
+	
 	def begin_game(self):
 		self.do_initial_config()
+		temp_snake = self.get_snake(1)
+		self.automated_snake = automated_snake.AutoMatedSnake(1, temp_snake.get_body_points(), temp_snake.direction, "green")
+		self.board.add_snake(self.automated_snake)
 		self.board.add_snake(self.snake)
 		fpsClock = pygame.time.Clock()
 		GAME_OVER = False
@@ -55,9 +45,12 @@ class SinglePlayerGame(SnakeGame):
 					if self.lives_remaining != 0:
 						temp_snake = self.get_snake(random.choice(range(3)))
 						self.snake.update_snake(temp_snake.get_body_points(), temp_snake.direction)
-						self.score -= 50
 					else:
 						is_new_high_score = self.is_new_high_score()
+
+			if self.automated_snake.is_bitten_by_itself() or self.automated_snake.has_hit_board_wall(self.board):
+				temp_snake = self.get_snake(random.choice(range(3)))
+				self.automated_snake.update_snake(temp_snake.get_body_points(), temp_snake.direction)
 
 			if self.lives_remaining == 0:
 				GAME_OVER = True
@@ -66,6 +59,10 @@ class SinglePlayerGame(SnakeGame):
 				self.food.update_position()
 				self.snake.grow_snake()
 				self.score += 20
+
+			elif self.automated_snake.has_eaten_food(self.food):
+				self.food.update_position()
+				self.automated_snake.grow_snake()
 
 			for event in pygame.event.get():
 				if event.type == QUIT:
@@ -87,6 +84,9 @@ class SinglePlayerGame(SnakeGame):
 
 			if not GAME_OVER and not key_pressed: 
 				self.snake.move_snake()
+				direction = self.automated_snake.get_auto_mated_direction(self.food)
+				self.automated_snake.update_direction(direction)
+				self.automated_snake.move_snake()
 
 			if GAME_OVER:
 				self.surface.blit(self.game_over_text, (self.res[0]/2-50, self.res[1]/2-50))
